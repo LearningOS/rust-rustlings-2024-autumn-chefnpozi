@@ -8,7 +8,6 @@
 // Execute `rustlings hint threads1` or use the `hint` watch subcommand for a
 // hint.
 
-// I AM NOT DONE
 
 use std::thread;
 use std::time::{Duration, Instant};
@@ -26,7 +25,11 @@ fn main() {
 
     let mut results: Vec<u128> = vec![];
     for handle in handles {
-        // TODO: a struct is returned from thread::spawn, can you use it?
+        // 使用 join 方法等待线程完成并获取返回值，方法返回一个 Result<T, E>，其中 T 是目标线程的返回值类型，E 是可能的错误类型。
+        // expect("Thread panicked") 用于处理 Result，如果目标线程发生panic，程序会打印 "Thread panicked" 并终止。
+        // 如果返回OK()，则会拆包出真正的数据。
+        let result = handle.join().expect("Thread panicked");
+        results.push(result);
     }
 
     if results.len() != 10 {

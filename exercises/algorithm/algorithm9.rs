@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -23,6 +22,7 @@ where
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
             count: 0,
+            // 向量中事先放入一个默认值，使堆的索引从 1 开始，从而简化父子节点的计算
             items: vec![T::default()],
             comparator,
         }
@@ -37,7 +37,21 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        // 不要使用capacity，要使用len，这个是判断vec是否溢出的标准
+        if self.count + 1 > self.items.len() - 1 {
+            self.items.push(value);
+        } else {
+            // 保证有效数据都在前面
+            self.items[self.count+1] = value;
+        }
+
+        self.count += 1;
+        let mut idx = self.count;
+        while idx > 1 && (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) {
+            let parent_idx = self.parent_idx(idx);
+            self.items.swap(idx, parent_idx);
+            idx = self.parent_idx(idx);
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +71,14 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+
+        if right > self.count || (self.comparator)(&self.items[left], &self.items[right]) {
+            left
+        } else {
+            right
+        }
     }
 }
 
@@ -79,13 +99,29 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None;
+        } else {
+            let root = self.items[1].clone();
+            self.items[1] = self.items[self.count].clone();
+            self.count -= 1;
+            let mut idx = 1;
+            while self.children_present(idx) {
+                let smallest_child_idx = self.smallest_child_idx(idx);
+                if (self.comparator)(&self.items[idx], &self.items[smallest_child_idx]) {
+                    break;
+                } else {
+                    self.items.swap(idx, smallest_child_idx);
+                    idx = smallest_child_idx;
+                }
+            }
+            Some(root)
+        }
     }
 }
 
